@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Arpita Chats ✨</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #0b0b1a; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); }
+    .container { width: 90%; max-width: 420px; padding: 30px 24px; text-align: center; animation: fadeIn 0.6s ease; }
+    h1 { font-size: 2.4rem; font-weight: 800; background: linear-gradient(135deg, #f472b6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
+    .sub { color: #9ca3af; margin-bottom: 24px; font-size: 0.9rem; }
+    input { width: 100%; padding: 12px 16px; margin-bottom: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: 0.2s; }
+    input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.3); }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 30px; font-size: 1rem; font-weight: 600; background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .btn:hover { transform: scale(1.02); box-shadow: 0 10px 20px -8px rgba(139,92,246,0.5); }
+    .error { color: #f87171; font-size: 0.85rem; margin-top: 8px; }
+    .link { color: #a78bfa; cursor: pointer; text-decoration: underline; }
+    .link:hover { color: #c4b5fd; }
+    .toggle-text { margin-top: 14px; color: #9ca3af; font-size: 0.9rem; }
+    .hidden { display: none !important; }
+
+    .glow-btn { width: 100%; padding: 16px; margin: 10px 0; border-radius: 40px; font-size: 1.2rem; font-weight: 700; border: none; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; cursor: pointer; box-shadow: 0 0 25px rgba(139,92,246,0.5); transition: 0.3s; }
+    .glow-btn:hover { transform: scale(1.03); box-shadow: 0 0 50px rgba(139,92,246,0.8); }
+
+    .room-container { max-width: 700px; width: 95%; height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 32px; background: rgba(0,0,0,0.4); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.05); }
+    .room-header { padding: 12px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .room-header .left { display: flex; align-items: center; gap: 10px; }
+    .room-header .left .name { font-weight: 700; font-size: 1rem; background: linear-gradient(135deg, #f472b6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .room-header .left .count { color: #9ca3af; font-size: 0.8rem; }
+    .room-header .right { display: flex; align-items: center; gap: 8px; }
+    .room-header .right button { background: rgba(255,255,255,0.05); border: none; color: #d1d5db; padding: 4px 12px; border-radius: 16px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+    .room-header .right button:hover { background: rgba(255,255,255,0.1); }
+    .room-header .right .heart-btn { font-size: 1.2rem; padding: 0 6px; background: transparent; border: none; cursor: pointer; animation: pulseHeart 1.5s infinite; }
+    @keyframes pulseHeart { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .room-header .right .fs-btn { font-size: 0.9rem; padding: 4px 10px; }
+
+    .messages { flex: 1; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .message { max-width: 70%; padding: 6px 12px; border-radius: 16px; word-wrap: break-word; animation: slideUp 0.2s ease; position: relative; font-size: 0.9rem; }
+    .message.mine { align-self: flex-end; background: linear-gradient(135deg, #7c3aed, #db2777); border-bottom-right-radius: 4px; }
+    .message.other { align-self: flex-start; background: rgba(255,255,255,0.08); border-bottom-left-radius: 4px; }
+    .message .sender { font-size: 0.65rem; font-weight: 600; color: #a78bfa; margin-bottom: 1px; }
+    .message .time { font-size: 0.55rem; opacity: 0.5; margin-top: 2px; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+    .message .actions { display: flex; gap: 6px; margin-top: 2px; font-size: 0.65rem; }
+    .message .actions button { background: transparent; border: none; color: #9ca3af; cursor: pointer; padding: 0 3px; }
+    .message .actions button:hover { color: #fff; }
+    .typing-indicator { align-self: flex-start; color: #9ca3af; font-size: 0.75rem; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+
+    .footer { padding: 10px 16px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px; }
+    .footer .input-row { display: flex; gap: 8px; align-items: center; }
+    .footer input { flex: 1; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 30px; color: #fff; font-size: 0.9rem; outline: none; }
+    .footer input:focus { border-color: #8b5cf6; }
+    .footer .btn-send { padding: 10px 18px; border: none; border-radius: 30px; background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .footer .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .footer .instagram-link { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.7rem; color: #9ca3af; text-decoration: none; }
+    .footer .instagram-link:hover { color: #a78bfa; }
+    .footer .instagram-link img { width: 16px; height: 16px; border-radius: 4px; }
+
+    /* Floating hearts animation */
+    .heart-float {
+      position: fixed;
+      font-size: 1.5rem;
+      pointer-events: none;
+      animation: floatUp 2.5s ease-out forwards;
+      z-index: 999;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(-120px) scale(0.5) rotate(30deg); }
+    }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #6b21a5; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <!-- AUTH -->
+<div id="auth" class="container glass">
+  <h1>✨ Arpita Chats</h1>
+  <div id="signup">
+    <p class="sub">Create your account</p>
+    <input type="text" id="suUser" placeholder="Username">
+    <input type="password" id="suPass" placeholder="Password">
+    <input type="password" id="suConfirm" placeholder="Confirm password">
+    <button class="btn" id="suBtn">🚀 Sign Up</button>
+    <div id="suError" class="error"></div>
+    <div class="toggle-text">Already have an account? <span class="link" id="gotoLogin">Login</span></div>
+  </div>
+  <div id="login" class="hidden">
+    <p class="sub">Welcome back</p>
+    <input type="text" id="logUser" placeholder="Username">
+    <input type="password" id="logPass" placeholder="Password">
+    <button class="btn" id="logBtn">🔐 Login</button>
+    <div id="logError" class="error"></div>
+    <div class="toggle-text">New here? <span class="link" id="gotoSignup">Sign up</span></div>
+  </div>
+</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="container glass hidden">
+  <h1>🏠 Welcome</h1>
+  <p class="sub" id="dashUser">User</p>
+  <button class="glow-btn" id="createRoomBtn">✨ Create Room</button>
+  <button class="glow-btn" id="joinRoomBtn">🔑 Join Room</button>
+  <button id="logoutBtn" style="margin-top:16px; background:rgba(255,255,255,0.05); color:#9ca3af; border:1px solid #333; border-radius:30px; padding:10px; width:100%; cursor:pointer;">Logout</button>
+  <div id="dashError" class="error"></div>
+</div>
+
+<!-- CREATE ROOM MODAL -->
+<div id="createModal" class="container glass hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;max-width:380px;width:90%;">
+  <h2>🛠 Create Room</h2>
+  <input type="text" id="newRoomId" placeholder="Room ID">
+  <input type="password" id="newRoomPass" placeholder="Password">
+  <button class="btn" id="createRoomConfirm">Create</button>
+  <div id="createError" class="error"></div>
+  <button id="createCancel" style="background:transparent;color:#9ca3af;margin-top:8px;border:none;cursor:pointer;">Cancel</button>
+</div>
+
+<!-- JOIN ROOM MODAL -->
+<div id="joinModal" class="container glass hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;max-width:380px;width:90%;">
+  <h2>🔑 Join Room</h2>
+  <input type="text" id="joinRoomId" placeholder="Room ID">
+  <input type="password" id="joinRoomPass" placeholder="Password">
+  <button class="btn" id="joinRoomConfirm">Join</button>
+  <div id="joinError" class="error"></div>
+  <button id="joinCancel" style="background:transparent;color:#9ca3af;margin-top:8px;border:none;cursor:pointer;">Cancel</button>
+</div>
+<!-- CHAT ROOM -->
+<div id="roomContainer" class="room-container hidden">
+  <div class="room-header">
+    <div class="left">
+      <span class="name" id="roomName">Room</span>
+      <span class="count" id="roomCount">👤 1</span>
+    </div>
+    <div class="right">
+      <!-- Pink Heart Button (pulse animation) -->
+      <button class="heart-btn" id="heartBtn">💗</button>
+      <!-- Fullscreen Button -->
+      <button class="fs-btn" id="fsBtn">⛶</button>
+      <button id="leaveRoomBtn">🚪</button>
+    </div>
+  </div>
+  <div class="messages" id="messagesContainer"></div>
+  <div class="footer">
+    <div class="input-row">
+      <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off">
+      <button class="btn-send" id="sendBtn" disabled>Send</button>
+    </div>
+    <!-- Instagram Link (admin) -->
+    <a href="https://www.instagram.com/aintorion?igsh=MTIxMXM1NTI4cHBzaQ==" target="_blank" class="instagram-link">
+      📸 Admin Instagram
+    </a>
+  </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // ---------- DOM refs ----------
+  const auth = document.getElementById('auth');
+  const signupDiv = document.getElementById('signup');
+  const loginDiv = document.getElementById('login');
+  const suUser = document.getElementById('suUser'), suPass = document.getElementById('suPass'), suConfirm = document.getElementById('suConfirm');
+  const suBtn = document.getElementById('suBtn'), suError = document.getElementById('suError');
+  const logUser = document.getElementById('logUser'), logPass = document.getElementById('logPass');
+  const logBtn = document.getElementById('logBtn'), logError = document.getElementById('logError');
+  const gotoLogin = document.getElementById('gotoLogin'), gotoSignup = document.getElementById('gotoSignup');
+  const dashboard = document.getElementById('dashboard'), dashUser = document.getElementById('dashUser');
+  const createRoomBtn = document.getElementById('createRoomBtn'), joinRoomBtn = document.getElementById('joinRoomBtn');
+  const logoutBtn = document.getElementById('logoutBtn'), dashError = document.getElementById('dashError');
+  const createModal = document.getElementById('createModal'), newRoomId = document.getElementById('newRoomId'), newRoomPass = document.getElementById('newRoomPass');
+  const createRoomConfirm = document.getElementById('createRoomConfirm'), createError = document.getElementById('createError'), createCancel = document.getElementById('createCancel');
+  const joinModal = document.getElementById('joinModal'), joinRoomId = document.getElementById('joinRoomId'), joinRoomPass = document.getElementById('joinRoomPass');
+  const joinRoomConfirm = document.getElementById('joinRoomConfirm'), joinError = document.getElementById('joinError'), joinCancel = document.getElementById('joinCancel');
+  const roomContainer = document.getElementById('roomContainer'), roomName = document.getElementById('roomName'), roomCount = document.getElementById('roomCount');
+  const messagesContainer = document.getElementById('messagesContainer'), msgInput = document.getElementById('msgInput'), sendBtn = document.getElementById('sendBtn');
+  const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+  const heartBtn = document.getElementById('heartBtn');
+  const fsBtn = document.getElementById('fsBtn');
+
+  // ---------- State ----------
+  let token = null, userId = null, username = '';
+  let socket = null;
+  let currentRoom = null, roomKey = null, roomSalt = null;
+  let messages = [], roomJoined = false, typingTimer = null, replyToId = null;
+
+  // ---------- E2EE ----------
+  async function deriveKey(password, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
+    return await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+  async function encryptMsg(plain) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const enc = new TextEncoder();
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, roomKey, enc.encode(plain));
+    return { cipher: btoa(String.fromCharCode(...new Uint8Array(encrypted))), iv: btoa(String.fromCharCode(...iv)), salt: btoa(String.fromCharCode(...salt)) };
+  }
+  async function decryptMsg(cipher, ivB64, saltB64) {
+    const c = Uint8Array.from(atob(cipher), c=>c.charCodeAt(0));
+    const i = Uint8Array.from(atob(ivB64), c=>c.charCodeAt(0));
+    const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: i }, roomKey, c);
+    return new TextDecoder().decode(dec);
+  }
+
+  // ---------- Fullscreen toggle ----------
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+
+  // ---------- Heart animation on send ----------
+  function spawnHearts() {
+    const emojis = ['❤️', '💗', '💖', '💕', '💓', '💘'];
+    for (let i = 0; i < 8; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-float';
+      heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      heart.style.left = (10 + Math.random() * 80) + '%';
+      heart.style.top = (20 + Math.random() * 40) + '%';
+      heart.style.fontSize = (1.2 + Math.random() * 1.5) + 'rem';
+      heart.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 3500);
+    }
+  }
+
+  // Heart button click – spawn hearts
+  heartBtn.addEventListener('click', spawnHearts);
+
+  // ---------- Auth toggles ----------
+  gotoLogin.addEventListener('click', ()=>{ signupDiv.classList.add('hidden'); loginDiv.classList.remove('hidden'); });
+  gotoSignup.addEventListener('click', ()=>{ loginDiv.classList.add('hidden'); signupDiv.classList.remove('hidden'); });
+
+  // ---------- Signup ----------
+  suBtn.addEventListener('click', async () => {
+    suError.textContent = '';
+    const u = suUser.value.trim(), p = suPass.value.trim(), c = suConfirm.value.trim();
+    if (!u || !p || !c) { suError.textContent = 'Fill all fields'; return; }
+    if (p !== c) { suError.textContent = 'Passwords do not match'; return; }
+    if (p.length < 4) { suError.textContent = 'Password min 4 chars'; return; }
+    try {
+      const res = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (!res.ok) { suError.textContent = '❌ ' + (data.error || 'Signup failed'); return; }
+      token = data.token; userId = data.userId; username = data.username;
+      localStorage.setItem('token', token); localStorage.setItem('username', username);
+      showDashboard();
+    } catch (err) { suError.textContent = '❌ ' + err.message; }
+  });
+
+  // ---------- Login ----------
+  logBtn.addEventListener('click', async () => {
+    logError.textContent = '';
+    const u = logUser.value.trim(), p = logPass.value.trim();
+    if (!u || !p) { logError.textContent = 'Fill all fields'; return; }
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (!res.ok) { logError.textContent = '❌ ' + (data.error || 'Login failed'); return; }
+      token = data.token; userId = data.userId; username = data.username;
+      localStorage.setItem('token', token); localStorage.setItem('username', username);
+      showDashboard();
+    } catch (err) { logError.textContent = '❌ ' + err.message; }
+  });
+
+  // ---------- Auto login ----------
+  window.addEventListener('load', ()=>{
+    const t = localStorage.getItem('token');
+    const u = localStorage.getItem('username');
+    if (t && u) { token = t; username = u; showDashboard(); }
+    else { auth.classList.remove('hidden'); }
+  });
+
+  // ---------- Dashboard ----------
+  function showDashboard() {
+    auth.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    dashUser.textContent = username;
+    if (socket) socket.disconnect();
+    socket = io({ auth: { token } });
+    socket.on('connect', ()=>console.log('Socket connected'));
+    socket.on('connect_error', (e)=>console.error('Socket error:', e));
+
+    createRoomBtn.onclick = ()=>{ createModal.classList.remove('hidden'); createError.textContent=''; newRoomId.value=''; newRoomPass.value=''; };
+    joinRoomBtn.onclick = ()=>{ joinModal.classList.remove('hidden'); joinError.textContent=''; joinRoomId.value=''; joinRoomPass.value=''; };
+    logoutBtn.onclick = ()=>{
+      if (socket) socket.disconnect();
+      fetch('/api/logout', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token}) });
+      localStorage.clear();
+      location.reload();
+    };
+    createCancel.onclick = ()=>createModal.classList.add('hidden');
+    joinCancel.onclick = ()=>joinModal.classList.add('hidden');
+
+    createRoomConfirm.onclick = async ()=>{
+      createError.textContent = '';
+      const roomId = newRoomId.value.trim();
+      const password = newRoomPass.value.trim();
+      if (!roomId || !password) { createError.textContent = 'Room ID and password required'; return; }
+      try {
+        const res = await fetch('/api/create-room', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ token, roomId, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { createError.textContent = '❌ ' + (data.error || 'Create failed'); return; }
+        createModal.classList.add('hidden');
+        roomSalt = data.salt;
+        joinRoom(roomId, password);
+      } catch (err) { createError.textContent = '❌ ' + err.message; }
+    };
+
+    joinRoomConfirm.onclick = async ()=>{
+      joinError.textContent = '';
+      const roomId = joinRoomId.value.trim();
+      const password = joinRoomPass.value.trim();
+      if (!roomId || !password) { joinError.textContent = 'Room ID and password required'; return; }
+      try {
+        const res = await fetch('/api/join-room', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ token, roomId, password })
+        });
+        const data = await res.json();
+        if (!res.ok) { joinError.textContent = '❌ ' + (data.error || 'Join failed'); return; }
+        joinModal.classList.add('hidden');
+        roomSalt = data.salt;
+        joinRoom(roomId, password);
+      } catch (err) { joinError.textContent = '❌ ' + err.message; }
+    };
+  }
+
+  // ---------- Join Room ----------
+  async function joinRoom(roomId, password) {
+    roomKey = await deriveKey(password, roomSalt);
+    currentRoom = roomId;
+    roomJoined = false;
+    dashboard.classList.add('hidden');
+    roomContainer.classList.remove('hidden');
+    roomName.textContent = roomId;
+    sendBtn.disabled = true;
+
+    socket.emit('join-room', { roomId });
+    socket.once('room-joined', ()=>{
+      roomJoined = true;
+      sendBtn.disabled = false;
+      loadMessages(roomId);
+    });
+
+    socket.on('user-joined', (data)=>{
+      const div = document.createElement('div');
+      div.className = 'message other';
+      div.style.alignSelf = 'center';
+      div.style.background = 'rgba(167,139,250,0.15)';
+      div.style.color = '#a78bfa';
+      div.style.fontSize = '0.75rem';
+      div.style.padding = '2px 10px';
+      div.textContent = '👋 ' + (data.username || 'Someone') + ' joined';
+      messagesContainer.appendChild(div);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+    socket.on('room-users', ({ count })=>{ roomCount.textContent = '👤 ' + count; });
+
+    socket.on('new-message', async (msg)=>{
+      const plain = await decryptMsg(msg.encrypted_content, msg.iv, msg.salt);
+      const isMine = (parseInt(msg.senderId) === parseInt(userId));
+      const newMsg = { ...msg, content: plain, isMine };
+      messages.push(newMsg);
+      renderMessage(newMsg);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      if (!isMine) {
+        socket.emit('mark-delivered', { messageId: msg.id, roomId });
+      }
+    });
+
+    socket.on('message-edited', async ({ messageId, encrypted_content, iv, salt })=>{
+      const msg = messages.find(m => m.id === messageId);
+      if (msg) {
+        msg.encrypted_content = encrypted_content;
+        msg.iv = iv;
+        msg.salt = salt;
+        msg.content = await decryptMsg(encrypted_content, iv, salt);
+        const el = messagesContainer.querySelector(`.message[data-id="${messageId}"] .content`);
+        if (el) el.textContent = msg.content;
+      }
+    });
+
+    socket.on('message-deleted', ({ messageId })=>{
+      const msg = messages.find(m => m.id === messageId);
+      if (msg) {
+        msg.is_deleted = 1;
+        msg.content = '[deleted]';
+        const el = messagesContainer.querySelector(`.message[data-id="${messageId}"]`);
+        if (el) {
+          el.querySelector('.content').textContent = '[deleted]';
+          el.style.opacity = '0.5';
+        }
+      }
+    });
+
+    socket.on('typing', ({ username, isTyping })=>{
+      let typingEl = document.getElementById('typingIndicator');
+      if (!typingEl) {
+        typingEl = document.createElement('div');
+        typingEl.className = 'typing-indicator';
+        typingEl.id = 'typingIndicator';
+        messagesContainer.appendChild(typingEl);
+      }
+      typingEl.textContent = isTyping ? username + ' is typing...' : '';
+      typingEl.style.display = isTyping ? 'block' : 'none';
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+
+    leaveRoomBtn.onclick = ()=>{
+      socket.off('new-message'); socket.off('user-joined'); socket.off('room-users'); socket.off('message-edited');
+      currentRoom = null; roomKey = null; roomSalt = null; messages = []; roomJoined = false;
+      roomContainer.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      sendBtn.disabled = true;
+      messagesContainer.innerHTML = '';
+    };
+  }
+
+  // ---------- Load messages ----------
+  async function loadMessages(roomId) {
+    try {
+      const res = await fetch('/api/rooms/' + roomId + '/messages', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      messages = [];
+      for (const m of data) {
+        if (m.is_deleted) { m.content = '[deleted]'; }
+        else { m.content = await decryptMsg(m.encrypted_content, m.iv, m.salt); }
+        m.isMine = (parseInt(m.sender_id) === parseInt(userId));
+        messages.push(m);
+        renderMessage(m);
+      }
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } catch (err) { console.error(err); }
+  }
+
+  // ---------- Render message ----------
+  function renderMessage(msg) {
+    const div = document.createElement('div');
+    div.className = 'message ' + (msg.isMine ? 'mine' : 'other');
+    div.dataset.id = msg.id;
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.textContent = msg.content;
+    div.appendChild(content);
+    if (!msg.isMine) {
+      const sender = document.createElement('div');
+      sender.className = 'sender';
+      sender.textContent = msg.sender_name || 'User';
+      div.prepend(sender);
+    }
+    const time = document.createElement('div');
+    time.className = 'time';
+    const ts = document.createElement('span');
+    ts.textContent = new Date(msg.sent_at).toLocaleTimeString();
+    time.appendChild(ts);
+    div.appendChild(time);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    if (msg.isMine && !msg.is_deleted) {
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = ()=>{
+        const newText = prompt('Edit message:', msg.content);
+        if (newText && newText.trim() !== msg.content) {
+          (async ()=>{
+            const { cipher, iv, salt } = await encryptMsg(newText.trim());
+            socket.emit('edit-message', {
+              messageId: msg.id,
+              roomId: currentRoom,
+              encrypted_content: cipher,
+              iv,
+              salt
+            });
+          })();
+        }
+      };
+      actions.appendChild(editBtn);
+    }
+
+    if (msg.isMine && !msg.is_deleted) {
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = ()=>{
+        if (confirm('Delete?')) {
+          socket.emit('delete-message', { messageId: msg.id, roomId: currentRoom });
+        }
+      };
+      actions.appendChild(delBtn);
+    }
+
+    if (!msg.isMine && !msg.is_deleted) {
+      const replyBtn = document.createElement('button');
+      replyBtn.textContent = 'Reply';
+      replyBtn.onclick = ()=>{
+        replyToId = msg.id;
+        msgInput.placeholder = 'Replying...';
+        msgInput.focus();
+      };
+      actions.appendChild(replyBtn);
+    }
+
+    div.appendChild(actions);
+    messagesContainer.appendChild(div);
+  }
+
+  // ---------- Send message ----------
+  sendBtn.onclick = sendMessage;
+  msgInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') sendMessage(); });
+
+  async function sendMessage() {
+    if (!roomJoined || !roomKey || !currentRoom) return;
+    const text = msgInput.value.trim();
+    if (!text) return;
+    const reply = replyToId;
+    replyToId = null;
+    msgInput.placeholder = 'Type a message...';
+    const { cipher, iv, salt } = await encryptMsg(text);
+    socket.emit('room-message', {
+      roomId: currentRoom,
+      encrypted_content: cipher,
+      iv,
+      salt,
+      sentAt: Date.now()
+    });
+    msgInput.value = '';
+    clearTimeout(typingTimer);
+    socket.emit('typing', { roomId: currentRoom, isTyping: false });
+    // Spawn hearts on send (for girlfriend effect)
+    spawnHearts();
+  }
+
+  // ---------- Typing ----------
+  msgInput.addEventListener('input', ()=>{
+    if (!socket || !currentRoom) return;
+    socket.emit('typing', { roomId: currentRoom, isTyping: true });
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(()=>{
+      socket.emit('typing', { roomId: currentRoom, isTyping: false });
+    }, 1000);
+  });
+
+  console.log('✨ Arpita Chats loaded');
+</script>
+</body>
+</html>
